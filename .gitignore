@@ -4,3 +4,6 @@
 *.ptx
 *.cubin
 *.fatbin
+*.o
+pycute.egg-info/
+build/
