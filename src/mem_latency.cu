@@ -119,7 +119,7 @@ test_latency_device(
         }
 
         int64_t clk4 = clock64();
-        latencies[Latency::__DUMMY_RES__] = res;
+        latencies[Latency::__DUMMY_RES__] = res + tSrS_rowcol(_0{}, _0{});
 
         if (warp_idx == 4 && lane_predicate) {
             // print("tSrQ\n"); print(tSrQ); print("\n");
