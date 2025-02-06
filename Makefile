@@ -9,6 +9,7 @@ CUDA_FLAGS := -std=c++17 $(CUDA_ARCH) -lineinfo \
               -O3 \
               --use_fast_math \
               --resource-usage \
+              --expt-relaxed-constexpr \
               -DCUTE_SM90_EXTENDED_MMA_SHAPES_ENABLED \
               -DCUTLASS_ENABLE_GDC_FOR_SM90 \
               -DNDEBUG
@@ -18,19 +19,18 @@ CUDA_FLAGS := -std=c++17 $(CUDA_ARCH) -lineinfo \
               # -DCUTLASS_DEBUG_TRACE_LEVEL=0 \  # Can toggle for debugging
 
 # Directories
-CUTLASS_DIR := third_party/cutlass/include
 INCLUDE_DIR := include
 SRC_DIR := src
 BUILD_DIR := build
 
 # Include and library paths
-INCLUDE_DIRS := -I$(CUDA_HOME)/include -I$(CUTLASS_DIR) -I$(INCLUDE_DIR)
+INCLUDE_DIRS := -I$(CUDA_HOME)/include -Ithird_party/cutlass/include -Ithird_party/cutlass/tools/util/include -I$(INCLUDE_DIR)
 LIB_DIRS := -L$(CUDA_HOME)/lib64
 LIBS := -lcudart -lcublas
 
 
 # Binaries
-BINARIES := $(BUILD_DIR)/layout
+BINARIES := $(BUILD_DIR)/layout $(BUILD_DIR)/mem_latency
 
 
 # Default target
@@ -42,6 +42,9 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cu
 
 $(BUILD_DIR)/layout: $(BUILD_DIR)/layout.o
 	$(NVCC) $(BUILD_DIR)/layout.o -o $@ $(LIB_DIRS) $(LIBS)
+
+$(BUILD_DIR)/mem_latency: $(BUILD_DIR)/mem_latency.o
+	$(NVCC) $(BUILD_DIR)/mem_latency.o -o $@ $(LIB_DIRS) $(LIBS)
 
 
 # Clean up
