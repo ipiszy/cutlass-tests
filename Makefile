@@ -10,6 +10,8 @@ CUDA_FLAGS := -std=c++17 $(CUDA_ARCH) -lineinfo \
               --use_fast_math \
               --resource-usage \
               --expt-relaxed-constexpr \
+              --ptxas-options=--verbose \
+              --keep \
               -DCUTE_SM90_EXTENDED_MMA_SHAPES_ENABLED \
               -DCUTLASS_ENABLE_GDC_FOR_SM90 \
               -DNDEBUG
@@ -49,4 +51,4 @@ $(BUILD_DIR)/mem_latency: $(BUILD_DIR)/mem_latency.o
 
 # Clean up
 clean:
-	rm -f $(BINARIES)
+	rm -f $(BUILD_DIR)/*

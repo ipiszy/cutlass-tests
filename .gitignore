@@ -5,5 +5,12 @@
 *.cubin
 *.fatbin
 *.o
+*.cpp*.*
+*.cudafe*.*
+*.fatbin*
+*.module_id
+*.ptx
+*.sass
+*.ncu-rep
 pycute.egg-info/
 build/
