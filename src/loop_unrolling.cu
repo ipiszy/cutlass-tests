@@ -63,6 +63,8 @@ __global__ void loop_unrolling_complex_bad(float* in0, float* in1, float* res) {
       make_float2(-arr_SF_P_float[outer_i], -arr_SF_P_float[outer_i])
     );
     CUTLASS_PRAGMA_UNROLL
+    // for (; offset_i < offset + inner_n; offset_i += 2) {
+    // for (int i = 0; i < inner_n; i += 2) {
     for (; offset_i < offset + inner_n; offset_i += 2) {
       float2 in = make_float2(
         tTMEM_LOADrS(offset_i + 0),
@@ -78,6 +80,7 @@ __global__ void loop_unrolling_complex_bad(float* in0, float* in1, float* res) {
   
       res_array[(offset_i)] = convert(tTMEM_LOADrS(offset_i));
       res_array[(offset_i+1)] = convert(tTMEM_LOADrS(offset_i+1));
+      // offset_i += 2;
     }
   }
 
@@ -86,6 +89,7 @@ __global__ void loop_unrolling_complex_bad(float* in0, float* in1, float* res) {
     *res += res_array[i];
   }
 }
+
 
 __global__ void loop_unrolling_complex_good(float* in0, float* in1, float* res) {
   auto arr_SF_P_float = cute::make_tensor<float>(Int<4>{});
