@@ -1,10 +1,15 @@
+#include <stdio.h>
+
 #include "cutlass/cutlass.h"
 #include "cute/tensor.hpp"
 
 #include "cute/atom/mma_traits_sm90_gmma.hpp"
+#include "cutlass/detail/sm100_blockscaled_layout.hpp"
 #include "cutlass/gemm/collective/builders/sm90_common.inl"
 
 #include "util.h"
+
+#define assertm(exp, msg) assert((void(msg), exp))
 
 void test_layouts() {
     printf("================ TEST LAYOUTS ================\n");
@@ -106,9 +111,55 @@ void test_mma_layouts() {
     printf("\n");
 }
 
+void test_sf_layouts() {
+    printf("================ TEST SF LAYOUTS ================\n");
+
+    using SfConfig = cutlass::detail::Sm100BlockScaledConfig<32>;
+    auto print_layout = [](int M, int N, int K, int L) {
+        printf("**** problem_shape(%d, %d, %d, %d) ****\n", M, N, K, L);
+        auto problem_shape = make_shape(M, N, K, L);
+        // SFA shape: ((32,4), ceil(M/128)), ((SFVecSize,4), ceil(K/4), L)
+        auto layout_sfa = SfConfig::tile_atom_to_shape_SFA(problem_shape);
+        // SFB shape: ((32,4), ceil(N/128)), ((SFVecSize,4), ceil(K/4), L)
+        auto layout_sfb = SfConfig::tile_atom_to_shape_SFB(problem_shape);
+        printf("SFA: \n");
+        print(layout_sfa);
+        printf("\n");
+        // print_layout_3d_compressed(layout_sfa);
+        std::vector<std::tuple<int, int, int>> mapping(
+            (int(std::ceil(float(K) / 128)) * 4) * (int(std::ceil(float(M) / 128)) * 128) * L,
+            std::make_tuple(-1, -1, -1)
+        );
+        printf("mapping.size: %d\n", mapping.size());
+        for (int b = 0; b < L; ++b) {
+            for (int i = 0; i < M; ++i) {
+                for (int j = 0; j < K; j += 32) {
+                    int idx = layout_sfa(i, j, b);
+                    printf("idx: %d, i: %d, j: %d, b: %d\n", idx, i, j, b);
+                    assert(idx < mapping.size());
+                    mapping[idx] = std::make_tuple(i, j, b);
+                }
+            }
+        }
+        for (int i = 0; i < mapping.size(); ++i) {
+            auto [m, k, l] = mapping[i];
+            printf("%d -> (%d, %d, %d)\n", i, m, k, l);
+            fflush(stdout);
+        }
+    };
+
+    // print_layout(128, 128, 128, 1);
+    // print_layout(128, 128, 256, 1);
+    // print_layout(128, 128, 129, 1);
+    // print_layout(256, 128, 128, 1);
+    // print_layout(129, 128, 128, 1);
+    // print_layout(256, 128, 256, 1);
+    print_layout(129, 128, 129, 1);
+}
 
 int main() {
     // test_layouts();
-    test_mma_layouts<cutlass::bfloat16_t>();
-    test_mma_layouts<cutlass::float_e4m3_t>();
+    // test_mma_layouts<cutlass::bfloat16_t>();
+    // test_mma_layouts<cutlass::float_e4m3_t>();
+    test_sf_layouts();
 }

@@ -22,9 +22,9 @@ CUDA_FLAGS := -std=c++17 $(CUDA_ARCH) -lineinfo \
               --keep \
               -DCUTE_SM90_EXTENDED_MMA_SHAPES_ENABLED \
               -DCUTLASS_ENABLE_GDC_FOR_SM90 \
-              -DNDEBUG \
-              -O3
-	      # --debug --device-debug \
+	      --debug --device-debug
+              # -DNDEBUG \
+              # -O3
               # --ftemplate-backtrace-limit=0  \ # To debug template code
               # --keep \
               # --ptxas-options=--verbose --register-usage-level=5 --warn-on-local-memory-usage \  # printing out number of registers
