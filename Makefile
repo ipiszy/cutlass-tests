@@ -52,7 +52,7 @@ LIBS := -lcudart -lcublas
 
 
 # Binaries
-BINARIES := $(BUILD_DIR)/layout $(BUILD_DIR)/mem_latency $(BUILD_DIR)/cpasync $(BUILD_DIR)/loop_unrolling
+BINARIES := $(BUILD_DIR)/layout $(BUILD_DIR)/mem_latency $(BUILD_DIR)/cpasync $(BUILD_DIR)/loop_unrolling $(BUILD_DIR)/fp8
 
 
 # Default target
@@ -74,6 +74,8 @@ $(BUILD_DIR)/cpasync: $(BUILD_DIR)/cp_async.o
 $(BUILD_DIR)/loop_unrolling: $(BUILD_DIR)/loop_unrolling.o
 	$(COMPILER_BIN) $(BUILD_DIR)/loop_unrolling.o -o $@ $(LIB_DIRS) $(LIBS)
 
+$(BUILD_DIR)/fp8: $(BUILD_DIR)/fp8.o
+	$(COMPILER_BIN) $(BUILD_DIR)/fp8.o -o $@ $(LIB_DIRS) $(LIBS)
 
 # Clean up
 clean:

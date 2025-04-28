@@ -120,21 +120,45 @@ void test_sf_layouts() {
         auto problem_shape = make_shape(M, N, K, L);
         // SFA shape: ((32,4), ceil(M/128)), ((SFVecSize,4), ceil(K/4), L)
         auto layout_sfa = SfConfig::tile_atom_to_shape_SFA(problem_shape);
+        auto layout_sfa_compact = filter_zeros(layout_sfa);
         // SFB shape: ((32,4), ceil(N/128)), ((SFVecSize,4), ceil(K/4), L)
         auto layout_sfb = SfConfig::tile_atom_to_shape_SFB(problem_shape);
-        printf("SFA: \n");
-        print(layout_sfa);
-        printf("\n");
-        // print_layout_3d_compressed(layout_sfa);
         std::vector<std::tuple<int, int, int>> mapping(
             (int(std::ceil(float(K) / 128)) * 4) * (int(std::ceil(float(M) / 128)) * 128) * L,
             std::make_tuple(-1, -1, -1)
         );
         printf("mapping.size: %d\n", mapping.size());
+
+        printf("SFA: \n");
+        print(layout_sfa);
+        printf("\n");
+        // print_layout_3d_compressed(layout_sfa);
         for (int b = 0; b < L; ++b) {
             for (int i = 0; i < M; ++i) {
                 for (int j = 0; j < K; j += 32) {
                     int idx = layout_sfa(i, j, b);
+                    printf("idx: %d, i: %d, j: %d, b: %d\n", idx, i, j, b);
+                    assert(idx < mapping.size());
+                    mapping[idx] = std::make_tuple(i, j, b);
+                }
+            }
+        }
+        for (int i = 0; i < mapping.size(); ++i) {
+            auto [m, k, l] = mapping[i];
+            printf("%d -> (%d, %d, %d)\n", i, m, k, l);
+            fflush(stdout);
+        }
+
+        printf("SFA_compact: \n");
+        print(layout_sfa_compact);
+        printf("\n");
+        for (int i = 0; i < mapping.size(); ++i) {
+            mapping[i] = std::make_tuple(-1, -1, -1);
+        }
+        for (int b = 0; b < L; ++b) {
+            for (int i = 0; i < M; ++i) {
+                for (int j = 0; j * 32 < K; ++j) {
+                    int idx = layout_sfa_compact(i, j, b);
                     printf("idx: %d, i: %d, j: %d, b: %d\n", idx, i, j, b);
                     assert(idx < mapping.size());
                     mapping[idx] = std::make_tuple(i, j, b);
